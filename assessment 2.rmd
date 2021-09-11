@@ -1,0 +1,242 @@
+---
+ *shreeya4648249*
+date: "9/1/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.path='figure/graphics',cache.path='cache/graphics',
+                      fig.align='center',
+                      external=TRUE,
+                      echo = TRUE)
+a4width<-8.9
+a4height<-11
+```
+
+*Shreeya Acharya*
+---
+**s4648249**
+---
+#Title: Assignment 2
+---
+![My Photo](IMG-20200729-085759-Original.jpg)
+
+
+###Loading the library
+
+```{r}
+library("tidyverse")
+library("janitor")
+library("stringr")
+library("tidyr")
+library("dplyr")
+```
+
+
+###Given Dataset
+
+```{r}
+thanksgiving <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv')
+```
+###1. Display the first 10 rows of the dataset using RMarkdown
+```{r}
+head(thanksgiving, 10)
+```
+
+###2.Use`fct_reorder` and `parse_number` functions to create a factor variable `family_income`
+
+```{r}
+thanksgiving %>%
+mutate(family_income =fct_reorder(family_income, parse_number(family_income)))
+```
+
+###3.Generate the general statistics of the dataset using `summary()` and `skim()` function
+
+```{r}
+summary(thanksgiving)
+```
+
+```{r}
+library("skimr")
+skim(thanksgiving)
+```
+
+###4. What is the number of people who celebrate?
+###There are 980 people who celebrate the thanksgiving.
+
+```{r}
+thanksgiving %>%
+count(celebrate)
+```
+
+###5.What are categories and stats for each main dish served and the method it is prepared?
+###Answer:The table below shows the summary of main dish served and how it is prepared.
+```{r}
+thanksgiving %>%
+count(main_dish, main_prep, sort=TRUE)
+```
+
+
+###Create a data viz showing this in the most evident way. Provide your own legend and use themes.
+
+```{r}
+thanksgiving%>%
+count(main_dish, main_prep, sort=TRUE) %>%
+ggplot(aes(x=main_dish, n, fill=main_prep))+
+geom_col()+
+coord_flip()+
+labs(x=" types of main_dish",y="Number of items",title="Data Visualisation", caption="Image 1:Graph") +
+theme_linedraw()
+```
+
+###7. How many use cranberry sauce? How many use gravy?
+###Answer: cranberry sauce is divided as canned and homemade and out of them 502 use canned cranberry, 301 use homemade, 146 use none of them and 25 use others.
+```{r}
+thanksgiving %>%
+count(cranberry)
+```
+###Answer: 892 people use the gravy and 82 people dont use gravy.
+
+```{r}
+thanksgiving %>%
+count(gravy)
+```
+
+
+###8 What is the distribution of those who celebrate across income ranges
+
+
+```{r}
+thanksgiving %>%
+group_by(family_income)%>%
+summarise(celebrate = sum(celebrate == "Yes")) 
+```
+
+###9Present this information in the most evident way on the data viz.
+```{r}
+thanksgiving %>%
+group_by(family_income)%>%
+summarise(celebrate = sum(celebrate == "Yes"))
+ggplot(thanksgiving, aes(x=family_income)) +
+  geom_bar( color= "green")+
+coord_flip()+
+labs(x="family_income",y= "Those who celebrate", title = " Distribution of those who celebrate ",caption = "Data Visualisation: Graph")
+```
+###10 and 11 What are the most common pies, sides, and desserts?
+###Answer:The question asked about the most common pies,sides and desserts. In pies, pumpkin is the most common with 729 people liking it. This is followed by sides with 817 people who most liked the mashed potatoes and finally, in desserts section ice-cream is the most loved one and 266 people liked it.
+
+```{r}
+common_side_dt <-thanksgiving %>%
+select (side1:side15) %>% gather(key="side",value="name", 1:15) %>%
+count(name, sort=TRUE) %>%
+drop_na %>%
+mutate(category ="side")
+```
+
+```{r}
+common_pie_dt <-thanksgiving %>%
+select (pie1:pie13) %>% gather(key="pie",value="name", 1:13) %>%
+count(name, sort=TRUE) %>%
+drop_na %>%
+mutate(category ="pie")
+```
+
+```{r}
+common_dessert_dt <-thanksgiving %>%
+select (dessert1:dessert11) %>% gather(key="dessert",value="name", 1:11) %>%
+count(name, sort=TRUE) %>%
+drop_na %>%
+mutate(category ="dessert")
+```
+
+```{r}
+combineddt <- rbind(common_pie_dt,common_side_dt,common_dessert_dt)
+```
+
+
+###11Present this information on a data viz
+
+###The most common sides as per the graph are mashed potatoes,Rolls/biscuits,green beans,yams,corn,carrots,corn bread,fruit salad,vegetable salad,macaroni&cheese,squash,brussel sprouts and cauliflower.
+
+```{r}
+combineddt <- rbind(common_side_dt)
+combineddt [seq(1,14), by=70] %>% 
+mutate(commonsdt = fct_reorder(name,n)) %>%
+ggplot(aes(name, n, fill = category)) +
+geom_col(width=0.5, shape=15)+
+coord_flip()+
+facet_grid(~category)+
+theme(legend.position = "none")+
+  geom_text(aes(label = n), vjust=0.2, size=3, colour="black")
+theme(axis.text.x = element_text(angle=-90, vjust=1, size=11, hjust=1))+
+  theme(legend.position = "bottom") +
+    theme(legend.direction = "vertical")
+```
+
+
+### Although its difficult to read the graph but the most common pie are pumpkin,apple,pecan,sweet potato,chocolate,cherry,keylime,coconut cream,buttermilk and peach respectively.
+
+```{r}
+combineddt <- rbind(common_pie_dt)
+combineddt [seq(1,13), by=70] %>% 
+mutate(commonsdt = fct_reorder(name,n)) %>%
+ggplot(aes(name, n, fill = category)) +
+geom_col(width=0.5, shape=15)+
+coord_flip()+
+facet_grid(~category)+
+theme(legend.position = "none")+
+  geom_text(aes(label = n), vjust=0.2, size=3, colour="black")
+theme(axis.text.x = element_text(angle=-90, vjust=1, size=11, hjust=1))+
+  theme(legend.position = "bottom") +
+    theme(legend.direction = "vertical") 
+```
+
+###The graph clearly shows that the most common desserts are Ice-cream,cookies,cheesecake,brownies,apple cobbler,peach cobbler,carrot cake,fludge, and blondies respectively.
+
+```{r}
+combineddt <- rbind(common_dessert_dt)
+combineddt [seq(1,11), by=70] %>% 
+mutate(commonsdt = fct_reorder(name,n)) %>%
+ggplot(aes(name, n, fill = category)) +
+geom_col(width=0.5, shape=15)+
+coord_flip()+
+facet_grid(~category)+
+theme(legend.position = "none")+
+  geom_text(aes(label = n), vjust=0.2, size=3, colour="black")
+theme(axis.text.x = element_text(angle=-90, vjust=1, size=11, hjust=1))+
+  theme(legend.position = "bottom") +
+    theme(legend.direction = "vertical") 
+```
+
+###12How do the servings differ by income?
+
+```{r}
+thanksgiving%>%
+filter(celebrate == "Yes") %>%
+select(family_income, main_dish) %>%
+count(family_income, main_dish)
+```
+
+
+###13 Present this information on a data viz
+
+```{r}
+thanksgiving%>%
+filter(celebrate == "Yes") %>%
+select(family_income, main_dish) %>%
+count(family_income, main_dish)
+ggplot(thanksgiving,aes(x=main_dish, y=family_income)) +
+geom_col(color="green", size=0.5)+
+coord_flip()+
+facet_wrap(~family_income)
+labs(x="main_dish",y= "family_income", title = "family_income vs main_dish",caption = "Data Visualisation: Graph") +
+theme_linedraw()
+```
+
+
+
+
+
+
+
+
+
