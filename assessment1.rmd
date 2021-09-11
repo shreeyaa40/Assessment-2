@@ -1,0 +1,183 @@
+---
+title: "Assessment1.1"
+author: "Shreeyas4648249"
+date: "8/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ *R Markdown*
+
+**This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents**. 
+
+[links](https://rmarkdown.rstudio.com)
+
+##Loading the library which is the collection of all toolkits we require in R
+```{r}
+library("tidyverse")
+```
+
+#loaded our desired dataset and named it as fastfood
+```{r}
+fastfood <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-04/fastfood_calories.csv')
+```
+
+## display the first 10 datasets
+```{r}
+head(fastfood, 10)
+```
+
+##to link the sequence we have used pipe function
+```{r}
+knitr::kable(head(fastfood[, 1:5]),"pipe")
+```
+
+##observation of calories more than 1000
+```{r}
+fastfood[fastfood$calories >1000, ]
+```
+
+##observation of data with total_fat>40 and total_carb>80
+```{r}
+fastfood[fastfood$total_fat > 40, ] 
+fastfood[fastfood$total_carb >80, ] 
+```
+
+
+```{r}
+dont_eat_this <- fastfood%>%
+group_by(total_fat & total_carb) %>%
+mutate(dont_eat_this=total_fat > 40 & total_carb > 80) %>%
+ungroup()
+head(dont_eat_this)
+```
+
+##display of the observations from restaurant macdonalds
+```{r}
+fastfood %>%
+filter(restaurant=="Mcdonalds")
+```
+
+##types of variable using skimr package
+```{r}
+skim(fastfood)
+```
+
+##display of average no of calories by using groppings
+```{r}
+fastfood %>% 
+group_by(restaurant) %>%
+ summarise(mean.calories=mean(calories)) 
+average_calories <- fastfood%>%
+group_by(restaurant) %>%
+summarise(average_calories=mean(calories))
+```
+
+##data visualization of total_fat for each type of restaurant
+```{r}
+fastfood %>%
+group_by(restaurant) %>%
+summarise(total_fat)
+```
+##From the above answer, I can say that only one of the variable is continuous so it can either follow histogram or dotplots for data visualisation.We can use the theme function as per our requirements.
+
+
+##adding new variable called max_total_fat
+```{r}
+max_total_fat <- fastfood%>%
+group_by(restaurant) %>%
+summarise(max_total_fat=max(total_fat))
+```
+
+##plot sugar variable against protein from restaurant macdonalds
+```{r}
+fastfood %>%
+group_by(restaurant=="Mcdonalds") %>%
+summarise(sugar,protein)
+ggplot(fastfood)
+ggplot(fastfood, aes(x=protein))
+ggplot(fastfood, aes(x=protein, y=sugar)) + geom_point(colour="green")+
+geom_smooth()
+```
+
+
+##Can use any of these two techniques for converting into factor variable
+```{r}
+restaurant <-c("Mcdonalds","Chick Fil-A","Sonic","Arbys","Burger King","Dairy Queen","Subway","Taco Bell")
+print(restaurant)
+print(is.factor(restaurant))
+factor_restaurant <- factor(restaurant)
+print(factor_restaurant)
+print(is.factor(factor_restaurant))
+```
+or
+```{r}
+restaurant_fct <- as.factor(fastfood$restaurant)
+```
+
+```{r}
+salad_fct <- as.factor(fastfood$salad)
+```
+
+##adding new variable called calories_type
+
+```{r}
+calories_type <-
+  cut_number(fastfood$calories, n = 3, labels=c("low","med","high"))
+levels(calories_type)
+fastfood%>%mutate(calories_type)
+```
+
+
+##data visualisation of calories_type
+```{r}
+fastfood %>% 
+group_by(calories_type)%>%
+ungroup() %>%
+ggplot(aes(x=calories_type,y=restaurant,))+
+geom_col(shape=20, size=5, width=0.05, color="red")+
+coord_flip()+
+facet_wrap(~restaurant)+
+theme_linedraw()
+```
+
+##adding new variable called trans_fat_percent
+```{r}
+fastfood <- fastfood%>%
+mutate(trans_fat_percent=trans_fat/total_fat*100)
+trans_fat_percent <- fastfood%>%
+group_by(restaurant) %>%
+summarise(trans_fat_percent=mean(trans_fat))
+```
+
+##data visualisation of trans_fat
+```{r}
+fastfood %>% 
+group_by(trans_fat)%>%
+ungroup() %>%
+ggplot(aes(x=restaurant,y=trans_fat,))+
+geom_col(size=15,width=0.15,color="orange")
+coord_flip()
+facet_wrap(~restaurant)
+theme_linedraw()
+```
+##average mean of total_fat
+```{r}
+fastfood %>%
+group_by(restaurant) %>%
+ summarise(total_fat=mean(total_fat)) 
+```
+
+##data visualisation of total fat
+```{r}
+fastfood %>% 
+group_by(total_fat)%>%
+ungroup() %>%
+ggplot(aes(x=restaurant,y=total_fat))+
+geom_col(width=0.10, size= 10, colour="pink")+
+geom_smooth()
+theme_linedraw()
+```
